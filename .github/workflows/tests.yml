@@ -15,6 +15,9 @@ jobs:
       - name: Set up Homebrew
         uses: Homebrew/actions/setup-homebrew@master
 
+      - name: Remove any stale tap from a previous run
+        run: brew untap iso-tollgate/tollgate iso-tollgate/local-ci 2>/dev/null || true
+
       - name: Tap this repo locally
         run: brew tap iso-tollgate/local-ci "$GITHUB_WORKSPACE"
 
@@ -22,7 +25,7 @@ jobs:
         run: brew install --build-from-source iso-tollgate/local-ci/iso-tollgate
 
       - name: Run formula test block
-        run: brew test iso-tollgate
+        run: brew test iso-tollgate/local-ci/iso-tollgate
 
       - name: Audit formula
         run: brew audit --strict iso-tollgate/local-ci/iso-tollgate

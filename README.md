@@ -48,20 +48,32 @@ Requires Homebrew installed on a real machine — this cannot be verified in a s
 
 ```bash
 # From the root of this tap repo:
-brew install --build-from-source ./Formula/iso-tollgate.rb
-brew test iso-tollgate
-brew audit --strict --online iso-tollgate
+brew tap iso-tollgate/local-testing "$(pwd)"
+brew install --build-from-source iso-tollgate/local-testing/iso-tollgate
+brew test iso-tollgate/local-testing/iso-tollgate
+brew audit --strict iso-tollgate/local-testing/iso-tollgate
 ```
 
-All three should complete without errors before merging a formula change. `brew audit --strict --online` in particular catches style and metadata issues that `brew install` alone won't.
+A bare relative path (`./Formula/iso-tollgate.rb`) does not work — Homebrew requires formulae to be installed from a registered tap, not a raw file path. Use a tap name distinct from the real `iso-tollgate/tollgate` (e.g. `local-testing`) so a local test tap can never collide with the real one or with leftover state from a previous test run. If you've tapped under a different name before, untap it first: `brew untap iso-tollgate/local-testing 2>/dev/null || true`.
+
+All three commands should complete without errors before merging a formula change. `brew audit --strict` in particular catches style and metadata issues that `brew install` alone won't. Building from source compiles `jiter` and `pydantic_core`'s Rust extensions — expect roughly 8-10 minutes, not a hang (see Known Issues below).
 
 If you need to start over (e.g. after editing the formula):
 
 ```bash
 brew uninstall iso-tollgate
-brew install --build-from-source ./Formula/iso-tollgate.rb
+brew untap iso-tollgate/local-testing
 ```
+
+## Known issues / future work
+
+**Build time (~8-10 minutes per CI run).** `jiter` and `pydantic_core` are Rust-backed packages. Homebrew's `resource` blocks always point at PyPI sdists, never prebuilt wheels, so every CI run compiles both extensions from source via `maturin` (`depends_on "rust" => :build`) — this is what makes `brew install --build-from-source` slow compared to a normal `pip install iso-tollgate`, which just downloads PyPI's prebuilt wheels for these two packages.
+
+Real options for reducing this, none implemented yet:
+- **Homebrew bottles.** The standard fix for exactly this problem — a bottle is a prebuilt binary Homebrew caches and serves, so `brew install iso-tollgate` (no `--build-from-source`) skips compilation entirely for anyone using a bottled release. Requires setting up bottle publishing (`brew pr-pull` / GitHub Packages) for this tap, which hasn't been done — right now every install, CI or end-user, builds from source every time.
+- **Cache the Cargo/maturin build artifacts between CI runs** (e.g. `actions/cache` keyed on the resource versions) — would speed up CI specifically without addressing end-user install time at all.
+- **Audit whether jiter could be dropped or replaced.** It's a transitive dependency via `anthropic` (used for `--explain`). Worth checking on a future pass whether a pure-Python JSON parser would be an acceptable substitute for tollgate's actual usage pattern, if Rust compilation continues to be a recurring source of friction. Not investigated yet — flagging as a question, not a decision.
 
 ## Status
 
-Scaffolded `2026-06-21`, formula targets `iso-tollgate==0.1.0` (first PyPI release). The `resource` blocks for runtime dependencies (`xmlschema`, `lxml`, `typer`, `rich`, `anthropic`, `pydantic`) still need to be generated with `poet` and added — see the `TODO` comment in `Formula/iso-tollgate.rb`.
+Live as of `2026-06-21`. CI installs the formula from a local tap on every push/PR (`.github/workflows/tests.yml`); see commit history for the iteration it took to get a working `install` method, the `rust` build dependency, and tap-naming collisions sorted out. Targets `iso-tollgate==0.1.0` (first PyPI release).
