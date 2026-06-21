@@ -76,4 +76,4 @@ Real options for reducing this, none implemented yet:
 
 ## Status
 
-Live as of `2026-06-21`. CI installs the formula from a local tap on every push/PR (`.github/workflows/tests.yml`); see commit history for the iteration it took to get a working `install` method, the `rust` build dependency, and tap-naming collisions sorted out. Targets `iso-tollgate==0.1.0` (first PyPI release).
+Live as of `2026-06-21`. CI (`.github/workflows/tests.yml`) runs `brew audit --strict` against the formula file on every push/PR — this catches Ruby syntax errors, style violations, and metadata problems, but does **not** install or run the formula. A full `brew install --build-from-source` + `brew test` pass (see "Testing the formula locally" above) is required manually before merging any formula change; CI deliberately doesn't attempt this on every push, both because tapping a local path in CI hit several Homebrew tap-naming issues (see commit history) and because the install itself is slow (~8-10 min, compiling Rust extensions from source every time). Targets `iso-tollgate==0.1.0` (first PyPI release).
