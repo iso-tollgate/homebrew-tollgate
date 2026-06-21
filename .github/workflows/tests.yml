@@ -15,17 +15,24 @@ jobs:
       - name: Set up Homebrew
         uses: Homebrew/actions/setup-homebrew@master
 
-      - name: Tap this repo locally (audit-only, no install)
-        # `brew audit` no longer accepts a bare file path -- "Calling
-        # `brew audit [path ...]` is disabled! Use `brew audit [name ...]`
-        # instead." (hit 2026-06-21). Per Homebrew maintainer guidance
-        # (github.com/orgs/Homebrew/discussions/4864), the fix is to tap
-        # the repo and audit by its tap-qualified name. This is safe and
-        # does NOT reintroduce the install-time tap collision from earlier
-        # commits: `brew tap` alone never runs the formula's install method
-        # or triggers dependency resolution, so there's nothing for a
-        # second same-named tap to collide with.
-        run: brew tap iso-tollgate/tollgate "$GITHUB_WORKSPACE"
+      - name: Sync this checkout into the auto-tapped directory
+        # setup-homebrew already clones the REAL iso-tollgate/tollgate tap
+        # from GitHub automatically (visible in its own log output as
+        # "Initialized empty Git repository in .../Taps/iso-tollgate/
+        # homebrew-tollgate/.git/"), before this workflow does anything.
+        # That's the tap `brew audit --strict iso-tollgate/tollgate/
+        # iso-tollgate` will read from. Problem: it's a checkout of
+        # whatever's on GitHub's default branch right now, NOT this PR's
+        # changes. Calling `brew tap` ourselves to point at this checkout
+        # instead hits a hard remote-mismatch error every time (commit
+        # history) -- Homebrew enforces that a canonical user/repo tap name
+        # can only ever resolve to its real GitHub remote, full stop, no
+        # override. So: don't fight that. Just overwrite the auto-tapped
+        # directory's files with this checkout's actual content, so the
+        # already-correctly-registered tap reflects what we're testing.
+        run: |
+          TAP_DIR="$(brew --repository iso-tollgate/tollgate)"
+          rsync -a --delete --exclude='.git' "$GITHUB_WORKSPACE"/ "$TAP_DIR"/
 
       - name: Audit formula syntax and style
         run: brew audit --strict iso-tollgate/tollgate/iso-tollgate
