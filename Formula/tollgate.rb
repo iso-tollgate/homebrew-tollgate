@@ -2,7 +2,7 @@ class Tollgate < Formula
   include Language::Python::Virtualenv
 
   desc "Pre-submission safety gate for ISO 20022 pacs.008 payment messages"
-  homepage "https://github.com/ArunMishra1/tollgate"
+  homepage "https://github.com/iso-tollgate/tollgate"
 
   # NOT YET LIVE (2026-06-20): url and sha256 below are placeholders.
   # This formula cannot install anything until iso-tollgate has a real

@@ -1,6 +1,6 @@
 # homebrew-tollgate
 
-Homebrew tap for [tollgate](https://github.com/ArunMishra1/tollgate) — a pre-submission safety gate for ISO 20022 pacs.008 payment messages.
+Homebrew tap for [tollgate](https://github.com/iso-tollgate/tollgate) — a pre-submission safety gate for ISO 20022 pacs.008 payment messages.
 
 ## Status: scaffolded, not live yet
 
@@ -16,14 +16,14 @@ See the comments in `Formula/tollgate.rb` for the exact steps.
 ## Once it's live, installation will look like
 
 ```bash
-brew tap ArunMishra1/tollgate
+brew tap iso-tollgate/tollgate
 brew install tollgate
 ```
 
 or in one line:
 
 ```bash
-brew install ArunMishra1/tollgate/tollgate
+brew install iso-tollgate/tollgate/tollgate
 ```
 
 ## License
