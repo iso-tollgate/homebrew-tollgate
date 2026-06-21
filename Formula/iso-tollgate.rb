@@ -144,6 +144,10 @@ class IsoTollgate < Formula
     sha256 "853effdfaf127849d4724368c17bd669e7f1486e15a0376404ad7954ec31a338"
   end
 
+  def install
+    virtualenv_install_with_resources
+  end
+
   test do
     system bin/"tollgate", "--help"
   end
