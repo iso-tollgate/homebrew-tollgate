@@ -15,11 +15,14 @@ jobs:
       - name: Set up Homebrew
         uses: Homebrew/actions/setup-homebrew@master
 
+      - name: Tap this repo locally
+        run: brew tap iso-tollgate/tollgate "$GITHUB_WORKSPACE"
+
       - name: Install formula from source
-        run: brew install --build-from-source ./Formula/iso-tollgate.rb
+        run: brew install --build-from-source iso-tollgate/tollgate/iso-tollgate
 
       - name: Run formula test block
         run: brew test iso-tollgate
 
       - name: Audit formula
-        run: brew audit --strict ./Formula/iso-tollgate.rb
+        run: brew audit --strict iso-tollgate/tollgate/iso-tollgate
