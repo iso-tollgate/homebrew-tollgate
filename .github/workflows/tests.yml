@@ -1,0 +1,25 @@
+name: tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-formula:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Homebrew
+        uses: Homebrew/actions/setup-homebrew@master
+
+      - name: Install formula from source
+        run: brew install --build-from-source ./Formula/iso-tollgate.rb
+
+      - name: Run formula test block
+        run: brew test iso-tollgate
+
+      - name: Audit formula
+        run: brew audit --strict ./Formula/iso-tollgate.rb
