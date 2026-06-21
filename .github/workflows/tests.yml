@@ -15,17 +15,17 @@ jobs:
       - name: Set up Homebrew
         uses: Homebrew/actions/setup-homebrew@master
 
+      - name: Tap this repo locally (audit-only, no install)
+        # `brew audit` no longer accepts a bare file path -- "Calling
+        # `brew audit [path ...]` is disabled! Use `brew audit [name ...]`
+        # instead." (hit 2026-06-21). Per Homebrew maintainer guidance
+        # (github.com/orgs/Homebrew/discussions/4864), the fix is to tap
+        # the repo and audit by its tap-qualified name. This is safe and
+        # does NOT reintroduce the install-time tap collision from earlier
+        # commits: `brew tap` alone never runs the formula's install method
+        # or triggers dependency resolution, so there's nothing for a
+        # second same-named tap to collide with.
+        run: brew tap iso-tollgate/tollgate "$GITHUB_WORKSPACE"
+
       - name: Audit formula syntax and style
-        # brew audit accepts a formula file path directly -- no tap
-        # registration needed, so this sidesteps every tap-naming/remote-
-        # matching issue hit when trying to brew-install from a local path
-        # in CI (see commit history). This catches Ruby syntax errors,
-        # style violations, and metadata problems, but does NOT build or
-        # run the formula -- a full `brew install --build-from-source` +
-        # `brew test` pass is still required locally before merging (see
-        # README.md's "Testing the formula locally" section). That full
-        # install/test loop has its own real cost too: jiter and
-        # pydantic_core compile Rust extensions from source every time
-        # (~8-10 min), which is exactly why CI doesn't attempt it on every
-        # push -- see README.md's "Known issues / future work" section.
-        run: brew audit --strict --formula ./Formula/iso-tollgate.rb
+        run: brew audit --strict iso-tollgate/tollgate/iso-tollgate
