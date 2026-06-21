@@ -7,6 +7,11 @@ class IsoTollgate < Formula
   sha256 "c77d68fcf27c8e92e939d88a944a31fb5de5e4ff1cc475b1981aebd77c3f28d9"
   license "Apache-2.0"
 
+  depends_on "rust" => :build  # jiter and pydantic_core are Rust extensions built
+  # via maturin from sdist -- without a Rust toolchain present, pip's build-
+  # isolation step fails trying to compile maturin itself. Found 2026-06-21
+  # when "Failed to build installable wheels ... maturin" surfaced building
+  # jiter from source; pydantic_core would hit the identical wall right after.
   depends_on "python@3.12"
 
   # Resource blocks generated via homebrew-pypi-poet on 2026-06-21, cross-checked
