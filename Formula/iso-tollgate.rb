@@ -171,7 +171,10 @@ class IsoTollgate < Formula
     fixture = Dir.glob(testpath/"*.xml").first
     assert fixture, "generate did not produce a fixture file"
 
-    output = shell_output("#{bin}/tollgate validate #{fixture}")
+    # validate exits 1 when it finds a violation -- that's correct behavior
+    # (lets a CI pipeline fail the build on real problems), so we expect
+    # exit code 1 here, not 0.
+    output = shell_output("#{bin}/tollgate validate #{fixture} 2>&1", 1)
     assert_match "charset_violation", output
   end
 end
