@@ -7,12 +7,18 @@ class IsoTollgate < Formula
   sha256 "c77d68fcf27c8e92e939d88a944a31fb5de5e4ff1cc475b1981aebd77c3f28d9"
   license "Apache-2.0"
 
-  depends_on "rust" => :build  # jiter and pydantic_core are Rust extensions built
+  depends_on "rust" => :build # jiter and pydantic_core are Rust extensions built
   # via maturin from sdist -- without a Rust toolchain present, pip's build-
   # isolation step fails trying to compile maturin itself. Found 2026-06-21
   # when "Failed to build installable wheels ... maturin" surfaced building
   # jiter from source; pydantic_core would hit the identical wall right after.
   depends_on "python@3.12"
+
+  # lxml (resource block below) links against libxml2/libxslt; both ship with
+  # macOS, so prefer the system copies there instead of building/linking
+  # Homebrew's own. On Linux this falls back to depends_on.
+  uses_from_macos "libxml2"
+  uses_from_macos "libxslt"
 
   # Resource blocks generated via homebrew-pypi-poet on 2026-06-21, cross-checked
   # against PyPI's JSON API for the iso-tollgate sdist plus a sample of its direct
@@ -155,5 +161,17 @@ class IsoTollgate < Formula
 
   test do
     system bin/"tollgate", "--help"
+
+    # Real functional check: generate a fixture with a known injected
+    # violation, then confirm validate actually catches it. A formula that
+    # only checks --help would still "pass" with validation logic completely
+    # broken -- this is the smoke test that would have caught that.
+    system bin/"tollgate", "generate", "--count", "1", "--rule-id", "charset_violation",
+                           "--output-dir", testpath
+    fixture = Dir.glob(testpath/"*.xml").first
+    assert fixture, "generate did not produce a fixture file"
+
+    output = shell_output("#{bin}/tollgate validate #{fixture}")
+    assert_match "charset_violation", output
   end
 end
